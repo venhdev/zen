@@ -88,3 +88,5 @@ function dirsize {
 
     $sorted
 }
+
+Set-Alias -Name dus -Value dirsize -ErrorAction SilentlyContinue

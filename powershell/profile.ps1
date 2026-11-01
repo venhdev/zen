@@ -1,8 +1,15 @@
 # Dotfiles PowerShell Root Profile
 # Sourced by $PROFILE (Microsoft.PowerShell_profile.ps1)
 
+# Ensure UTF-8 Console Encoding for clean Unicode output
+try {
+    [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+} catch {}
+
 $global:DOTFILES_DIR = if ($env:DOTFILES) {
     $env:DOTFILES
+} elseif (Test-Path "$env:USERPROFILE\.config\zen") {
+    "$env:USERPROFILE\.config\zen"
 } elseif (Test-Path "$env:USERPROFILE\.config\dotfiles") {
     "$env:USERPROFILE\.config\dotfiles"
 } else {
