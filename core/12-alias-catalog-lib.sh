@@ -216,8 +216,8 @@ _zen_alias_catalog() {
     utils[++n_u] = "zen ali" SEP "alias catalog" SEP "Browse and search all shell & git shortcuts";
     utils[++n_u] = "zen setup" SEP "modular installer" SEP "Run dotfiles installation & setup wizard";
     utils[++n_u] = "zen ski" SEP "npx skills [action]" SEP "Agent skills orchestrator (Vercel Skills CLI)";
-    utils[++n_u] = "zen skiv" SEP "zen ski venhdev/skills" SEP "Install personal skills from venhdev/skills";
-    utils[++n_u] = "zen skiva" SEP "zen skiv --all" SEP "Install all personal skills non-interactively";
+    utils[++n_u] = "zen skiv" SEP "zen ski venhdev/skills" SEP "Personal skills (auto-targets .agents/skills)";
+    utils[++n_u] = "zen skiup" SEP "zen ski update -p -y" SEP "Update all project skills according to lockfile";
     utils[++n_u] = "zen sleep" SEP "sleepin [min]" SEP "Put Windows machine to sleep after countdown (default: 30)";
     utils[++n_u] = "sleepin" SEP "zen sleep [min]" SEP "Put Windows machine to sleep after countdown (default: 30)";
     utils[++n_u] = "winsleep" SEP "sleepin [min]" SEP "Put Windows machine to sleep after countdown (default: 30)";

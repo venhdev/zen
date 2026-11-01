@@ -156,8 +156,8 @@ Authoritative registry of navigation, system, and dev aliases
             @{ Name = "zen setup"; Cmd = "Modular dotfiles setup & installer"; Desc = "Dotfiles setup" }
             @{ Name = "ins / insdf"; Cmd = "zen / zen setup"; Desc = "Setup shorthand" }
             @{ Name = "zen ski [source]"; Cmd = "npx skills add/rm/ls/update"; Desc = "Agent skills orchestrator" }
-            @{ Name = "zen skiv [opts]"; Cmd = "zen ski venhdev/skills"; Desc = "Install personal skills" }
-            @{ Name = "zen skiva"; Cmd = "zen ski venhdev/skills --all"; Desc = "Install all personal skills" }
+            @{ Name = "zen skiv [opts]"; Cmd = "zen ski venhdev/skills"; Desc = "Personal skills (default: .agents/skills)" }
+            @{ Name = "zen skiup"; Cmd = "zen ski update -p -y"; Desc = "Update project skills from lockfile" }
         )
         "PYTHON VENV" = @(
             @{ Name = "va"; Cmd = "Activate .venv, venv, or env"; Desc = "Activate Python venv" }
@@ -327,30 +327,31 @@ zen ski - Agent Skills Orchestrator (powered by Vercel Skills CLI)
 
 Usage:
   zen ski <source> [options]         Add skill(s) from GitHub, URL, or local path
-  zen skiv [options]                 Add personal skills (venhdev/skills)
-  zen skiva                          Batch install all personal skills non-interactively (--all)
+  zen skiv [options]                 Personal skills (venhdev/skills, default: .agents/skills)
+  zen skiup                          Update project skills according to lockfile (-p -y)
 
 Common Management:
+  zen ski update [skills...]         Update installed skills to latest versions
   zen ski rm <skill...>              Remove installed agent skill(s)
   zen ski ls [-g]                    List installed skills (project or global -g)
-  zen ski update                     Update installed skills to latest versions
   zen ski find [query]               Search agent skills interactively
   zen ski check                      Check for available skill updates
 
 Add Options:
   -g, --global                       Install to user directory (~/<agent>/skills)
-  -a, --agent <agents...>            Target specific agent(s) (e.g. claude-code, codex, cursor, *)
-  -s, --skill <skills...>            Specify skill names to install (use '*' for all)
+  -a, --agent <agents...>            Target specific agent(s) (default for skiv: codex)
+  -s, --skill <skills...>            Specify skill names to install
   -l, --list                         List available skills in source without installing
   -y, --yes                          Skip confirmation prompts
-  --all                              Shorthand for --skill '*' --agent '*' -y
   --copy                             Copy files instead of symlinking
 
 Examples:
-  zen ski vercel-labs/agent-skills
-  zen skiv -l
-  zen skiv -s clarify
-  zen skiva
+  zen skiv                           Interactive selection into .agents/skills/
+  zen skiv -y                        Install all personal skills to .agents/skills/
+  zen skiv -s clarify                Install specific skill to .agents/skills/
+  zen skiv -a claude-code            Install to Claude Code instead of default
+  zen skiup                          Update all installed project skills
+  zen ski vercel-labs/agent-skills   Install external skills
 "@
         return
     }
@@ -384,14 +385,30 @@ Examples:
             & $npxCmd --yes skills add @tail
         }
         { $_ -in "v", "venh" } {
-            & $npxCmd --yes skills add venhdev/skills @tail
-        }
-        { $_ -in "va", "venha" } {
-            & $npxCmd --yes skills add venhdev/skills --all @tail
+            _zen_cmd_skiv -RemainingArgs $tail
         }
         default {
             & $npxCmd --yes skills add @RemainingArgs
         }
+    }
+}
+
+function _zen_cmd_skiv {
+    param([string[]]$RemainingArgs)
+
+    $hasAgent = $false
+    if ($RemainingArgs) {
+        foreach ($arg in $RemainingArgs) {
+            if ($arg -eq "-a" -or $arg -eq "--agent" -or $arg.StartsWith("--agent=")) {
+                $hasAgent = $true
+                break
+            }
+        }
+    }
+    if (-not $hasAgent) {
+        _zen_cmd_ski -RemainingArgs (@("venhdev/skills", "-a", "codex") + $RemainingArgs)
+    } else {
+        _zen_cmd_ski -RemainingArgs (@("venhdev/skills") + $RemainingArgs)
     }
 }
 
@@ -410,11 +427,11 @@ function zen {
             return
         }
         "skiv" {
-            _zen_cmd_ski -RemainingArgs (@("venhdev/skills") + $RemainingArgs)
+            _zen_cmd_skiv -RemainingArgs $RemainingArgs
             return
         }
-        "skiva" {
-            _zen_cmd_ski -RemainingArgs (@("venhdev/skills", "--all") + $RemainingArgs)
+        "skiup" {
+            _zen_cmd_ski -RemainingArgs (@("update", "-p", "-y") + $RemainingArgs)
             return
         }
         "sync" {
@@ -536,8 +553,8 @@ Headless Package Management:
 
 Agent Skills Management:
   zen ski [source|cmd]   Agent skills orchestrator (add, rm, ls, update, find)
-  zen skiv [options]     Add personal skills from venhdev/skills
-  zen skiva              Batch install all personal skills non-interactively (--all)
+  zen skiv [options]     Personal skills (venhdev/skills, default: .agents/skills)
+  zen skiup              Update project skills according to lockfile (-p -y)
 
 Ecosystem & Workstation:
   zen sync               Pull latest commits & reload aliases into session

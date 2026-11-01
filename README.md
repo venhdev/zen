@@ -325,11 +325,11 @@ zen ali git                 # Search aliases matching keyword 'git'
 
 # 6. Agent Skills Management (Vercel Skills CLI)
 zen ski [source]            # Add agent skill(s) from GitHub, URL, or local path
-zen skiv [options]          # Install personal skills from venhdev/skills
-zen skiva                   # Install all personal skills non-interactively (--all)
+zen skiv [options]          # Personal skills from venhdev/skills (auto-targets .agents/skills)
+zen skiup                   # Update project skills according to lockfile (-p -y)
+zen ski update [skills...]  # Update all (or named) installed skills
 zen ski rm <skill...>       # Remove installed skill(s)
 zen ski ls [-g]             # List installed skills (project or global)
-zen ski update              # Update all installed skills to latest versions
 
 # 7. Modular Dotfiles Provisioning
 zen setup [modules...]      # Re-run modular dotfiles installer (replaces insdf)
@@ -461,8 +461,8 @@ When the `docker` module is enabled:
 When the `ai` module is enabled:
 - **`claudebypass`**: Launch Claude Code with auto-approved execution permissions (`--dangerously-skip-permissions`).
 - **`ski`**: Agent skills orchestrator (`zen ski`, powered by Vercel Skills CLI).
-- **`zen skiv`**: Add personal skill repository (`npx skills add venhdev/skills`).
-- **`zen skiva`**: Install all personal skills non-interactively (`npx skills add venhdev/skills --all`).
+- **`zen skiv`**: Personal skill management (`zen skiv`, auto-targets `.agents/skills/`).
+- **`zen skiup`**: Update project skills from lockfile (`zen ski update -p -y`).
 - **`skiu`**: Remove skills (`zen ski rm`).
 - **`ocwatch`** / **`ocstop`**: Start or Stop OpenClaw Gateway.
 
