@@ -94,7 +94,7 @@ Note: To reconfigure system modules or run full provisioning, use 'zen setup'.
 
     $sw = _zen_timer_start
 
-    Write-Host "==> Syncing Zen Ecosystem ($dotfilesRoot)..." -ForegroundColor Cyan
+    Write-Host "==> Syncing ZenCLI Ecosystem ($dotfilesRoot)..." -ForegroundColor Cyan
 
     # 1. Pull latest commits quietly
     if (Test-Path "$dotfilesRoot\.git") {
@@ -161,7 +161,7 @@ function _zen_alias_catalog {
 
     Write-Host @"
 
-=== ZEN SHORTCUT & ALIAS DIRECTORY (Windows PowerShell) ===
+=== ZENCLI SHORTCUT & ALIAS DIRECTORY (Windows PowerShell) ===
 Authoritative registry of navigation, system, and dev aliases
 "@ -ForegroundColor Cyan
 
@@ -193,7 +193,7 @@ Authoritative registry of navigation, system, and dev aliases
             @{ Name = "wslcompact"; Cmd = "Compact ext4.vhdx using Hyper-V / DiskPart"; Desc = "Reclaim WSL disk space" }
             @{ Name = "sleepin [min]"; Cmd = "Start-Sleep & SetSuspendState (default: 30m)"; Desc = "Countdown sleep timer" }
             @{ Name = "winsleep"; Cmd = "sleepin"; Desc = "Sleep alias" }
-            @{ Name = "zen sleep [min]"; Cmd = "sleepin [min]"; Desc = "Zen sleep gateway" }
+            @{ Name = "zen sleep [min]"; Cmd = "sleepin [min]"; Desc = "ZenCLI sleep gateway" }
         )
         "FILE & SYSTEM & NAVIGATION" = @(
             @{ Name = ".."; Cmd = "Set-Location .."; Desc = "Go up 1 directory" }
@@ -275,7 +275,7 @@ Authoritative registry of navigation, system, and dev aliases
 }
 
 function _zen_doctor {
-    Write-Host "`n=== ZEN DOCTOR DIAGNOSTIC REPORT (Windows) ===" -ForegroundColor Cyan
+    Write-Host "`n=== ZENCLI DOCTOR DIAGNOSTIC REPORT (Windows) ===" -ForegroundColor Cyan
     Write-Host "Time: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') | Edition: $PSEdition | Version: $($PSVersionTable.PSVersion)"
 
     # Dotfiles root
@@ -564,6 +564,8 @@ Usage:
         default {
             $mgrDisplay = if ($mgr) { $mgr } else { "none detected (install winget or scoop)" }
             Write-Host @"
+ZenCLI - Unified Ecosystem Gateway & Developer Tool Orchestrator
+
 Usage: zen <command> [arguments...]
 
 Headless Package Management:

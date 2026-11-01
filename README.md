@@ -1,4 +1,4 @@
-# Zen (Dotfiles)
+# ⚡ ZenCLI (Dotfiles & System Orchestrator)
 
 A fast, modular, zero-dependency dotfiles system and workstation environment for Linux, macOS, and Windows with interactive installers, native PowerShell integration, and dynamic machine-specific configurations.
 
@@ -298,7 +298,7 @@ open_target https://github.com    # Open URL in default browser
 
 ## 6. zen: Unified Ecosystem Gateway & Package Manager
 
-`🏷️ [Cross-Platform]` **`zen [command] [arguments...]`**
+`🏷️ [Cross-Platform]` **`zen [command] [arguments...]`** *(ZenCLI Gateway)*
 Unified command gateway and workstation orchestrator managing system packages, developer tools, ecosystem diagnostics, and shortcut catalogs:
 
 ```bash

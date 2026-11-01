@@ -29,7 +29,7 @@ _zen_doctor() {
   [[ -f "$manifest_file" ]] || manifest_file="${XDG_CONFIG_HOME:-$HOME/.config}/dotfiles/.installed.json"
   [[ -f "$manifest_file" ]] || manifest_file="$dotfiles_root/.installed.json"
 
-  printf "\n${c_bold}${c_cyan}=== ZEN ECOSYSTEM HEALTH DOCTOR ===${c_reset}\n"
+  printf "\n${c_bold}${c_cyan}=== ZENCLI ECOSYSTEM HEALTH DOCTOR ===${c_reset}\n"
   printf "${c_gray}Authoritative Inspection & System Diagnostic Ledger${c_reset}\n\n"
 
   # ----------------------------------------------------------------------------
@@ -89,10 +89,10 @@ _zen_doctor() {
   # ----------------------------------------------------------------------------
   printf "\n${c_bold}[3/5] Managed Symlinks & Git Configuration${c_reset}\n"
   if [[ -f "$HOME/.gitconfig" ]] && grep -qE '(zen|dotfiles)/\.gitconfig' "$HOME/.gitconfig" 2>/dev/null; then
-    printf "  ${c_green}✔${c_reset} Global Git config includes Zen .gitconfig\n"
+    printf "  ${c_green}✔${c_reset} Global Git config includes ZenCLI .gitconfig\n"
     ((pass_count++))
   else
-    printf "  ${c_yellow}⚠${c_reset} ~/.gitconfig does not reference Zen .gitconfig (Run 'zen setup git')\n"
+    printf "  ${c_yellow}⚠${c_reset} ~/.gitconfig does not reference ZenCLI .gitconfig (Run 'zen setup git')\n"
     ((warn_count++))
   fi
 

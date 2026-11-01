@@ -600,7 +600,7 @@ _zen_cmd_sync() {
   local t0
   t0="$(_zen_timer_start)"
 
-  echo "==> Syncing Zen Ecosystem ($dotfiles_root)..."
+  echo "==> Syncing ZenCLI Ecosystem ($dotfiles_root)..."
 
   # 1. Pull latest commits quietly
   if [[ -d "$dotfiles_root/.git" ]]; then
@@ -768,7 +768,7 @@ _zen_help() {
   fi
 
   cat <<EOF
-zen - Unified Ecosystem Gateway & Developer Tool Orchestrator
+ZenCLI - Unified Ecosystem Gateway & Developer Tool Orchestrator
 
 Usage:
   zen [subcommand] [arguments...]

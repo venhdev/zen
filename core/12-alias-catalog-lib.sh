@@ -240,7 +240,7 @@ _zen_alias_catalog() {
     cg = "\033[1;32m"; cy = "\033[1;33m"; cc = "\033[1;36m";
     cb = "\033[1m"; cgr = "\033[90m"; cr = "\033[0m";
 
-    printf "\n%s%s=== ZEN SHORTCUT & ALIAS DIRECTORY ===%s\n", cb, cc, cr;
+    printf "\n%s%s=== ZENCLI SHORTCUT & ALIAS DIRECTORY ===%s\n", cb, cc, cr;
     if (q != "") {
       printf "%sFiltering shortcuts matching: \047%s\047%s\n\n", cgr, q, cr;
     } else {

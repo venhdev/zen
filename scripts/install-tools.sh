@@ -599,7 +599,7 @@ _action_install() {
     done
   fi
 
-  printf "\n${_TUI_GRAY}Press Enter to return to Zen Notebook...${_TUI_RESET}"
+  printf "\n${_TUI_GRAY}Press Enter to return to ZenCLI Notebook...${_TUI_RESET}"
   read -r _ </dev/tty || true
   _tui_enter
 }
@@ -645,7 +645,7 @@ _action_update() {
     done
   fi
 
-  printf "\n${_TUI_GRAY}Press Enter to return to Zen Notebook...${_TUI_RESET}"
+  printf "\n${_TUI_GRAY}Press Enter to return to ZenCLI Notebook...${_TUI_RESET}"
   read -r _ </dev/tty || true
   _tui_enter
 }
@@ -705,7 +705,7 @@ _action_delete() {
     fi
   done
 
-  printf "\n${_TUI_GRAY}Press Enter to return to Zen Notebook...${_TUI_RESET}"
+  printf "\n${_TUI_GRAY}Press Enter to return to ZenCLI Notebook...${_TUI_RESET}"
   read -r _ </dev/tty || true
   _tui_enter
 }
@@ -787,7 +787,7 @@ _tui_enter
 
 while true; do
   _tui_clear
-  _tui_draw_header "ZEN: DEVELOPER TOOLS NOTEBOOK" "Developer Tool Ledger & Provisioning Manager"
+  _tui_draw_header "ZENCLI: DEVELOPER TOOLS NOTEBOOK" "Developer Tool Ledger & Provisioning Manager"
 
   # Table Column Header (Mathematically aligned with row columns)
   printf "      %-10s %-13s %-10s %-15s %s\n" "COMMAND" "STATUS" "VERSION" "ORIGIN" "DESCRIPTION" >/dev/tty
@@ -866,4 +866,4 @@ while true; do
 done
 
 _tui_exit
-printf "\nClosed Zen Tools Notebook.\n"
+printf "\nClosed ZenCLI Tools Notebook.\n"

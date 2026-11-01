@@ -888,7 +888,7 @@ if (( selected[7] )); then
 fi
 
 echo
-echo "Zen $ACTION successfully: $DIR"
+echo "ZenCLI $ACTION successfully: $DIR"
 echo
 echo "Run below command to reload:"
 echo "source ~/.bashrc"
