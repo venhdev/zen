@@ -308,6 +308,21 @@ zen() {
       fi
       ;;
 
+    ski)
+      shift
+      _zen_cmd_ski "$@"
+      ;;
+
+    skiv)
+      shift
+      _zen_cmd_ski "venhdev/skills" "$@"
+      ;;
+
+    skiva)
+      shift
+      _zen_cmd_ski "venhdev/skills" --all "$@"
+      ;;
+
     --all|-a)
       local installer="$dotfiles_root/scripts/install-tools.sh"
       if [[ -f "$installer" ]]; then
@@ -428,6 +443,98 @@ _zen_cmd_search() {
     return 1
   fi
   _zen_package_action "search" "$@"
+}
+
+_zen_ski_help() {
+  cat <<'EOF'
+zen ski - Agent Skills Orchestrator (powered by Vercel Skills CLI)
+
+Usage:
+  zen ski <source> [options]         Add skill(s) from GitHub, URL, or local path
+  zen skiv [options]                 Add personal skills (venhdev/skills)
+  zen skiva                          Batch install all personal skills non-interactively (--all)
+
+Common Management:
+  zen ski rm <skill...>              Remove installed agent skill(s)
+  zen ski ls [-g]                    List installed skills (project or global -g)
+  zen ski update                     Update installed skills to latest versions
+  zen ski find [query]               Search agent skills interactively
+  zen ski check                      Check for available skill updates
+
+Add Options:
+  -g, --global                       Install to user directory (~/<agent>/skills)
+  -a, --agent <agents...>            Target specific agent(s) (e.g. claude-code, codex, cursor, *)
+  -s, --skill <skills...>            Specify skill names to install (use '*' for all)
+  -l, --list                         List available skills in source without installing
+  -y, --yes                          Skip confirmation prompts
+  --all                              Shorthand for --skill '*' --agent '*' -y
+  --copy                             Copy files instead of symlinking
+
+Examples:
+  zen ski vercel-labs/agent-skills
+  zen skiv -l
+  zen skiv -s clarify
+  zen skiva
+EOF
+}
+
+_zen_cmd_ski() {
+  if ! command -v npx >/dev/null 2>&1; then
+    echo "❌ Error: 'npx' is required to manage agent skills." >&2
+    echo "💡 Run 'zen i node' (or install Node.js) to enable skills management." >&2
+    return 1
+  fi
+
+  if [[ $# -eq 0 ]]; then
+    _zen_ski_help
+    return 0
+  fi
+
+  local action="${1:-}"
+  case "$action" in
+    -h|--help|help)
+      _zen_ski_help
+      ;;
+    rm|remove)
+      shift
+      npx --yes skills remove "$@"
+      ;;
+    ls|list)
+      shift
+      npx --yes skills list "$@"
+      ;;
+    update|up|upgrade)
+      shift
+      npx --yes skills update "$@"
+      ;;
+    find)
+      shift
+      npx --yes skills find "$@"
+      ;;
+    check)
+      shift
+      npx --yes skills check "$@"
+      ;;
+    init)
+      shift
+      npx --yes skills init "$@"
+      ;;
+    add)
+      shift
+      npx --yes skills add "$@"
+      ;;
+    v|venh)
+      shift
+      npx --yes skills add venhdev/skills "$@"
+      ;;
+    va|venha)
+      shift
+      npx --yes skills add venhdev/skills --all "$@"
+      ;;
+    *)
+      npx --yes skills add "$@"
+      ;;
+  esac
 }
 
 _zen_cmd_sync() {
@@ -626,6 +733,11 @@ Headless Package Management:
   zen upgrade system       Upgrade system package manager only
   zen upgrade <pkg...>     Upgrade or reinstall specific package(s)
   zen search <query>       Search for packages in repository
+
+Agent Skills Management:
+  zen ski [source|cmd]     Agent skills orchestrator (add, rm, ls, update, find)
+  zen skiv [options]       Add personal skills from venhdev/skills
+  zen skiva                Batch install all personal skills non-interactively (--all)
 
 Ecosystem & Workstation:
   zen doctor               Audit ecosystem health (OS, symlinks, git, hooks, tools)
