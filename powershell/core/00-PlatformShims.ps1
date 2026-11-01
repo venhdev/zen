@@ -41,6 +41,25 @@ function open_target {
     }
 }
 
+function _zen_timer_start {
+    return [System.Diagnostics.Stopwatch]::StartNew()
+}
+
+function _zen_timer_elapsed {
+    param([System.Diagnostics.Stopwatch]$sw)
+    $sw.Stop()
+    $ms = $sw.ElapsedMilliseconds
+    if ($ms -lt 1000) {
+        return "${ms}ms"
+    } elseif ($ms -lt 60000) {
+        return "{0:N2}s" -f ($ms / 1000)
+    } else {
+        $m = [Math]::Floor($ms / 60000)
+        $s = ($ms % 60000) / 1000
+        return "{0}m {1:N1}s" -f $m, $s
+    }
+}
+
 function _zen_sync {
     param([string[]]$Arguments = @())
 
@@ -73,40 +92,43 @@ Note: To reconfigure system modules or run full provisioning, use 'zen setup'.
         return
     }
 
-    Write-Host "==> Synchronizing Zen repository ($dotfilesRoot)..." -ForegroundColor Cyan
+    $sw = _zen_timer_start
+
+    Write-Host "==> Syncing Zen Ecosystem ($dotfilesRoot)..." -ForegroundColor Cyan
+
+    # 1. Pull latest commits quietly
     if (Test-Path "$dotfilesRoot\.git") {
         if (Get-Command git.exe -ErrorAction SilentlyContinue) {
-            Write-Host "--> Pulling latest commits from remote..." -ForegroundColor Yellow
-            try {
-                $pullOutput = & git.exe -C $dotfilesRoot pull --rebase --autostash 2>&1
-                $pullOutput | Write-Host
-                $latestCommit = (& git.exe -C $dotfilesRoot log -1 --format='%h ("%s")' 2>$null)
-                if ($latestCommit) {
-                    Write-Host "✔ Repository updated: $latestCommit" -ForegroundColor Green
-                }
-            } catch {
-                Write-Warning "git pull failed; check network or repository status."
+            $oldHead = (& git.exe -C $dotfilesRoot rev-parse --short HEAD 2>$null)
+            $pullErr = (& git.exe -C $dotfilesRoot pull --rebase --autostash --quiet 2>&1)
+            $pullSuccess = ($LASTEXITCODE -eq 0)
+            $newHead = (& git.exe -C $dotfilesRoot rev-parse --short HEAD 2>$null)
+
+            if (-not $pullSuccess) {
+                Write-Host "  ✖ Git pull failed:" -ForegroundColor Red
+                if ($pullErr) { Write-Host $pullErr -ForegroundColor Red }
+            } elseif ($oldHead -ne $newHead) {
+                Write-Host "  ✔ Pulled $newHead" -ForegroundColor Green
+            } else {
+                Write-Host "  ✔ Repository up to date ($newHead)" -ForegroundColor Green
             }
         } else {
-            Write-Warning "git.exe not found on PATH; skipping git pull."
+            Write-Host "  ✖ git.exe not found on PATH; skipping git pull." -ForegroundColor Yellow
         }
     } else {
-        Write-Host "Notice: '$dotfilesRoot' is not a git repository; skipping git pull." -ForegroundColor DarkGray
+        Write-Host "  ℹ '$dotfilesRoot' is not a git repository; skipping git pull." -ForegroundColor DarkGray
     }
 
-    Write-Host "--> Synchronizing latest aliases..." -ForegroundColor Yellow
-
-    # 1. Global Git Aliases
+    # 2. Global Git Aliases
     if ((Get-Command git.exe -ErrorAction SilentlyContinue) -and (Test-Path "$dotfilesRoot\.gitconfig")) {
         $gitconfigPosix = "$dotfilesRoot\.gitconfig" -replace '\\', '/'
         $includes = @(& git.exe config --global --get-all include.path 2>$null)
         if ($includes -notcontains $gitconfigPosix -and $includes -notcontains "$dotfilesRoot\.gitconfig") {
             & git.exe config --global --add include.path $gitconfigPosix
         }
-        Write-Host "✔ Global Git aliases synced ($dotfilesRoot\.gitconfig)" -ForegroundColor Green
     }
 
-    # 2. Reload PowerShell Core Components
+    # 3. Reload PowerShell Core Components
     $coreScripts = Get-ChildItem -Path "$dotfilesRoot\powershell\core\*.ps1" -ErrorAction SilentlyContinue | Sort-Object Name
     $loadedCount = 0
     foreach ($script in $coreScripts) {
@@ -117,16 +139,16 @@ Note: To reconfigure system modules or run full provisioning, use 'zen setup'.
             Write-Warning "Failed loading $($script.Name): $_"
         }
     }
-    Write-Host "✔ Reloaded $loadedCount PowerShell core components (powershell/core/*.ps1)" -ForegroundColor Green
 
-    # 3. Reload Local Machine Configurations if present
+    # 4. Reload Local Machine Configurations if present
     $localPs1 = "$dotfilesRoot\local\local.ps1"
     if (Test-Path $localPs1) {
         . $localPs1
-        Write-Host "✔ Reloaded local configurations ($localPs1)" -ForegroundColor Green
     }
 
-    Write-Host "✔ All latest aliases and commands are now active in current session." -ForegroundColor Green
+    Write-Host "  ✔ Refreshed session ($loadedCount components)" -ForegroundColor Green
+    $elapsed = _zen_timer_elapsed $sw
+    Write-Host "✔ Done in $elapsed" -ForegroundColor Cyan
 }
 
 function _zen_alias_catalog {

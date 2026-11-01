@@ -550,6 +550,38 @@ _zen_cmd_ski() {
   esac
 }
 
+_zen_timer_start() {
+  if [[ -n "${EPOCHREALTIME:-}" ]]; then
+    echo "$EPOCHREALTIME"
+    return
+  fi
+  local nano
+  nano="$(date +%s%N 2>/dev/null || true)"
+  if [[ "$nano" =~ ^[0-9]{11,}$ ]]; then
+    echo "${nano:0:10}.${nano:10:6}"
+    return
+  fi
+  date +%s
+}
+
+_zen_timer_elapsed() {
+  local start="${1:-0}"
+  local end
+  end="$(_zen_timer_start)"
+  awk -v s="$start" -v e="$end" 'BEGIN {
+    diff = e - s;
+    if (diff < 0) diff = 0;
+    if (diff < 1) {
+      printf "%dms", int(diff * 1000);
+    } else if (diff < 60) {
+      printf "%.2fs", diff;
+    } else {
+      m = int(diff / 60);
+      printf "%dm %.1fs", m, diff - (m * 60);
+    }
+  }'
+}
+
 _zen_cmd_sync() {
   local dotfiles_root="$(_get_dotfiles_root)"
 
@@ -565,47 +597,57 @@ _zen_cmd_sync() {
     return 0
   fi
 
-  echo "==> Synchronizing Zen repository ($dotfiles_root)..."
+  local t0
+  t0="$(_zen_timer_start)"
+
+  echo "==> Syncing Zen Ecosystem ($dotfiles_root)..."
+
+  # 1. Pull latest commits quietly
   if [[ -d "$dotfiles_root/.git" ]]; then
-    echo "--> Pulling latest commits from remote..."
-    if git -C "$dotfiles_root" pull --rebase --autostash; then
-      local latest_commit
-      latest_commit="$(git -C "$dotfiles_root" log -1 --format='%h ("%s")' 2>/dev/null || true)"
-      [[ -n "$latest_commit" ]] && echo "✔ Repository updated: $latest_commit"
+    if command -v git >/dev/null 2>&1; then
+      local old_head new_head git_out pull_status=0
+      old_head="$(git -C "$dotfiles_root" rev-parse --short HEAD 2>/dev/null || true)"
+      git_out="$(git -C "$dotfiles_root" pull --rebase --autostash --quiet 2>&1)" || pull_status=$?
+      new_head="$(git -C "$dotfiles_root" rev-parse --short HEAD 2>/dev/null || true)"
+
+      if (( pull_status != 0 )); then
+        echo "  ✖ Git pull failed:" >&2
+        [[ -n "$git_out" ]] && echo "$git_out" >&2
+      elif [[ "$old_head" != "$new_head" ]]; then
+        echo "  ✔ Pulled $new_head"
+      else
+        echo "  ✔ Repository up to date ($new_head)"
+      fi
     else
-      echo "⚠️  Warning: git pull failed; check network or repository status." >&2
+      echo "  ✖ git command not found; skipping repository pull." >&2
     fi
   else
-    echo "Notice: '$dotfiles_root' is not a git repository; skipping git pull."
+    echo "  ℹ '$dotfiles_root' is not a git repository; skipping pull."
   fi
 
-  echo "--> Synchronizing latest aliases..."
-
-  # 1. Ensure global git aliases are included
+  # 2. Synchronize git include.path
   if command -v git >/dev/null 2>&1 && [[ -f "$dotfiles_root/.gitconfig" ]]; then
     if ! git config --global --get-all include.path 2>/dev/null | grep -Fxq "$dotfiles_root/.gitconfig"; then
       git config --global --add include.path "$dotfiles_root/.gitconfig"
     fi
-    echo "✔ Global Git aliases synced ($dotfiles_root/.gitconfig)"
   fi
 
-  # 2. Source local env if present
+  # 3. Source local env if present
   if [[ -r "$dotfiles_root/local/local.env" ]]; then
     # shellcheck source=/dev/null
     . "$dotfiles_root/local/local.env"
   fi
 
-  # 3. Reload shell core aliases
+  # 4. Reload shell core aliases
   shopt -s expand_aliases 2>/dev/null || true
   local alias_count=0
   if [[ -f "$dotfiles_root/core/10-base-aliases.sh" ]]; then
     # shellcheck source=/dev/null
     . "$dotfiles_root/core/10-base-aliases.sh"
     alias_count=$(grep -cE '^[[:space:]]*alias ' "$dotfiles_root/core/10-base-aliases.sh" 2>/dev/null || echo 0)
-    echo "✔ Reloaded $alias_count shell aliases (core/10-base-aliases.sh)"
   fi
 
-  # 4. Reload enabled modules
+  # 5. Reload enabled modules
   local mod_count=0
   if [[ -d "$dotfiles_root/enabled.d" ]]; then
     for _mod in "$dotfiles_root"/enabled.d/*.sh; do
@@ -616,11 +658,8 @@ _zen_cmd_sync() {
       fi
     done
   fi
-  if (( mod_count > 0 )); then
-    echo "✔ Reloaded $mod_count active modules (enabled.d)"
-  fi
 
-  # 5. Reload platform library and alias catalog
+  # 6. Reload platform library and alias catalog
   if [[ -f "$dotfiles_root/core/00-platform-lib.sh" ]]; then
     # shellcheck source=/dev/null
     . "$dotfiles_root/core/00-platform-lib.sh"
@@ -630,7 +669,8 @@ _zen_cmd_sync() {
     . "$dotfiles_root/core/12-alias-catalog-lib.sh"
   fi
 
-  echo "✔ All latest aliases are now active in current session."
+  echo "  ✔ Refreshed session ($alias_count aliases, $mod_count modules)"
+  printf "✔ Done in %s\n" "$(_zen_timer_elapsed "$t0")"
 }
 
 _zen_package_action() {
